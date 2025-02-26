@@ -1,0 +1,57 @@
+# ...
+name: tes
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  slim_build:
+    runs-on: ubuntu-latest
+    # You can use either of the ubuntu-20.04 or ubuntu-22.04 runner
+    steps:
+      # You might want to Checkout your repo first, but not mandatory
+      - uses: actions/checkout@v3
+      # Cleanup The Actions Workspace Using Custom Composite Run Actions
+      - uses: rokibhasansagar/slimhub_actions@main
+        # Optional key, "retain": Use only if you want something to keep
+        with:
+          retain: ""
+          # The values must match from the below list
+      # That's it! Now use your normal steps
+      - name: "Custom Steps"
+        run: |
+          sudo apt update ;\
+          sudo apt upgrade -y ;\
+          sudo apt install -y make bc bison build-essential checkinstall libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool lz4 libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools wget xsltproc zip zlib1g-dev ;\
+          wget https://archive.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2_amd64.deb ;\
+          sudo dpkg -i libtinfo5_6.3-2_amd64.deb ;\
+          rm -f libtinfo5_6.3-2_amd64.deb ;\
+          wget https://archive.ubuntu.com/ubuntu/pool/universe/n/ncurses/libncurses5_6.3-2_amd64.deb ;\
+          sudo dpkg -i libncurses5_6.3-2_amd64.deb ;\
+          rm -f libncurses5_6.3-2_amd64.deb ;\
+          wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz ;\
+          tar -xvf Python-2.7.18.tgz ;\
+          cd Python-2.7.18 ;\
+          ./configure --enable-optimizations ;\
+          make ;\
+          sudo make install ;\
+          wget https://bootstrap.pypa.io/pip/2.7/get-pip.py ;\
+          sudo python2 get-pip.py ;\
+          cd .. ;\
+          sudo rm -rf Python-2.7.18 ;\
+          sudo apt clean ;\
+          mkdir -p tes ;\
+          cd tes ;\
+          sudo curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo ;\
+          sudo chmod a+x /usr/local/bin/repo ;\
+          repo init --depth=1 --no-repo-verify -u https://github.com/LineageOS/android.git -b lineage-16.0 -g default,-mips,-darwin,-notdefault ;\
+          git clone --depth=1 https://github.com/risawitama/local_manifests.git -b pie .repo/local_manifests ;\
+          time repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all) ;\
+          time source build/envsetup.sh ;\
+          time lunch lineage_onclite-userdebug ;\
+          time mka sepolicy ;\
+          time mka bootimage ;\
+          time mka init ;\
+          cd .. ;\
+          rm -rf tes
+# ...
